@@ -75,6 +75,34 @@ app.post('/answer', async(요청, 응답)=> { // 답변 저장
         }
       });
 })
+app.post('/showAnswer', async(요청, 응답)=> { // 답변 저장
+  console.log(요청.body)
+  try{
+    connection.connect((err) => {
+      if (err) {
+        console.error('MySQL 연결 실패: ', err);
+        응답.status(500).json({ message: 'MySQL 연결 실패' });
+      } else {
+        console.log('MySQL 연결 성공!');
+      
+        const query = `SELECT * FROM useranswer WHERE nickname = '${요청.body.nickname}';`;
+        connection.query(query, (error, results, fields) => {
+          if (error) {
+            console.error('쿼리 실행 오류:', error);
+            응답.status(500).json({ message: '쿼리 실행 오류' });
+          } else {
+            console.log('쿼리 실행 결과:', results);
+            const answerArray = results.map(item => item.answer);
+            응답.status(200).json({data: answerArray});
+          }
+        });
+      }
+    });
+  } catch(e) {
+      console.log(e)
+      응답.status(500).json({ message: '쿼리 실행 오류' });
+  }
+});
 
 app.post('/interview', async (요청, 응답) => {
     console.log(요청.body)
