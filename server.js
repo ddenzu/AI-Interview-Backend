@@ -4,6 +4,7 @@ const OpenAI = require('openai');
 var cors = require('cors')
 const mysql = require('mysql2');
 require('dotenv').config();
+const path = require('path')
 const apiKey = process.env.API_KEY
 const openai = new OpenAI({
     apiKey: apiKey
@@ -12,6 +13,7 @@ const openai = new OpenAI({
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
+app.use(express.static(path.join(__dirname, '/chat/build')))
 
 const connection = mysql.createConnection({
     host: 'localhost', 
@@ -25,34 +27,41 @@ app.listen(process.env.PORT, () => {
 })
 
 app.get('/', async (req, res) => {
-    res.send('asdf')
+    res.sendFile(path.join(__dirname, '/chat/build/index.html'))
 })
 
 app.post('/login', async (req, res) => {
   try {
     console.log(req.body);
-    connection.connect((err) => {
-      if (err) {
-        console.error('MySQL 연결 실패: ',err);
-        res.status(500).json('서버 에러');
-        return;
-      }
-      console.log('MySQL 연결 성공');
-      const { nickname, gender, job } = req.body;
-      connection.query(
-        'INSERT INTO users (nickname, gender, job) VALUES (?, ?, ?)',
-        [nickname, gender, job],
-        (error, results, fields) => {
-          if (error) {
-            console.error('쿼리 실행 오류:', error);
-            res.status(500).json('서버 에러');
-            return;
-          }
-          console.log('데이터 삽입 성공');
-          res.status(200).json('데이터 삽입 성공');
+    const { nickname, gender, job } = req.body;
+    connection.query(
+      'SELECT * FROM users WHERE nickname = ?',
+      [nickname],
+      (error, results, fields) => {
+        if (error) {
+          console.error('쿼리 실행 오류:', error);
+          res.status(500).json('서버 에러');
+          return;
         }
-      );
-    });
+        if (results.length) {
+          res.status(200).json('이미 존재하는 닉네임');
+        } else {
+          connection.query(
+            'INSERT INTO users (nickname, gender, job) VALUES (?, ?, ?)',
+            [nickname, gender, job],
+            (error, results, fields) => {
+              if (error) {
+                console.error('쿼리 실행 오류:', error);
+                res.status(500).json('서버 에러');
+                return;
+              }
+              console.log('데이터 삽입 성공');
+              res.status(200).json('데이터 삽입 성공');
+            }
+          );
+        }
+      }
+    );
   } catch (error) {
     res.status(500).json('서버 에러');
     console.error('서버 오류:', error);
@@ -169,5 +178,8 @@ app.post('/interview', async (req, res) => {
       console.error('서버 오류:', error);
       res.status(500).json('서버 에러');
     }
+});
 
+app.get("*", function(req, res){
+  res.sendFile(path.join(__dirname, '/chat/build/index.html'))
 });
