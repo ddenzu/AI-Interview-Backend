@@ -9,7 +9,6 @@ const apiKey = process.env.API_KEY
 const openai = new OpenAI({
     apiKey: apiKey
   });
-  
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
