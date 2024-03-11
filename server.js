@@ -13,7 +13,7 @@ const openai = new OpenAI({
 app.use(cors())
 app.use(express.json())
 app.use(express.urlencoded({extended: true}))
-app.use(express.static(path.join(__dirname, '/chat/build')))
+app.use(express.static(path.join(__dirname, '/AI-interview/build')))
 
 const connection = mysql.createConnection({
     host: process.env.DB_HOST, 
@@ -27,7 +27,7 @@ app.listen(process.env.PORT, () => {
 })
 
 app.get('/', async (req, res) => {
-    res.sendFile(path.join(__dirname, '/chat/build/index.html'))
+    res.sendFile(path.join(__dirname, '/AI-interview/build/index.html'))
 })
 
 app.post('/login', async (req, res) => {
@@ -183,5 +183,5 @@ app.post('/interview', async (req, res) => {
 });
 
 app.get("*", function(req, res){
-  res.sendFile(path.join(__dirname, '/chat/build/index.html'))
+  res.sendFile(path.join(__dirname, '/AI-interview/build/index.html'))
 });
